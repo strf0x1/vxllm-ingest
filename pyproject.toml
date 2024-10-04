@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "vxllm"
+version = "0.1.0"
+description = ""
+authors = ["Brandon Bosch <brandon.bosch@protonmail.com>"]
+readme = "README.md"
+packages = [{include = "vxllm"}]
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+ragatouille = "^0.0.8.post4"
+langchain = "^0.3.0"
+rich = "^13.8.1"
+ollama = "^0.3.3"
+fitz = "^0.0.1.dev2"
+pyfiglet = "^1.0.2"
+transformers = "^4.44.2"
+pymupdf = "^1.24.10"
+pymupdf4llm = "^0.0.17"
+bert-score = "^0.3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+vxllm = "vxllm.main:main"
+cli = "vxllm.cli:main"
