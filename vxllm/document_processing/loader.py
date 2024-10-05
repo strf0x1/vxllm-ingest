@@ -36,7 +36,7 @@ def load_document(file_path):
     return Document(page_content=text, metadata=metadata)
 
 
-def process_documents(directory):
+def process_documents(directory, should_generate_metadata=False):
     print("Processing documents...")
     supported_extensions = ['.txt', '.md', '.c', '.cpp', '.go', '.pdf']
     documents = []
@@ -53,14 +53,15 @@ def process_documents(directory):
                     doc = load_document(file_path)
 
                     # generate metadata with ollama
-                    # TODO: add metadata user feedback + timing or spinner
-                    # TODO: add flag --metadata
-                    metadata = generate_metadata(doc)
-                    meta_file_path = f"{os.path.splitext(file_path)[0]}.meta"
-                    with open(meta_file_path, 'w', encoding='utf-8') as meta_file:
-                        json.dump(metadata, meta_file, indent=2)
+                    if should_generate_metadata:
+                        print("Processing metadata...")
+                        metadata = generate_metadata(doc)
+                        doc.metadata.update(metadata)
+                        meta_file_path = f"{os.path.splitext(file_path)[0]}.meta"
+                        with open(meta_file_path, 'w', encoding='utf-8') as meta_file:
+                            json.dump(metadata, meta_file, indent=2)
 
-                    # added for deduping documents
+                    # hashing for deduping documents
                     doc_hash = compute_document_hash(doc)
                     if doc_hash not in document_hashes:
                         documents.append(doc)

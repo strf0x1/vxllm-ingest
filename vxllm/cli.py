@@ -62,39 +62,28 @@ def query_ollama(prompt, model="mistral-nemo", client=None):
 
 def rag_search(query, conversation_history, num_docs=20, client=None):
     # Start timer for RAG response time
-    print("starting timer...")
     start_time = time.time()
 
     # Suppress stdout and stderr during RAGatouille operations
-    # An error occurred: unhashable type: 'dict'
-    #with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
         # Load the ColBERT index and perform the search
-    print("loading the RAG collection...")
-    rag = RAGPretrainedModel.from_index(".ragatouille/colbert/indexes/document_collection/")
-    print("searching rag...")
-    docs = rag.search(query, k=num_docs)
-    print("loading doc contents...")
-    doc_contents = [doc['content'] for doc in docs]
-    print("reranking...")
-    reranked_docs = rag.rerank(query=query, documents=doc_contents, k=10)
-    print("logging time it took...")
-    # End timer for RAG response time
-    rag_time_ms = (time.time() - start_time) * 1000  # Convert to milliseconds
-    print("collection context...")
-    # Construct the context from reranked documents
-    context = "\n".join([doc['content'] for doc in reranked_docs])
-    print(context)
-    # Extract metadata from reranked documents
-    all_tags = set()
-    all_urls = set()
-    print("setting metadata...")
-    for doc in docs:
-        if 'document_metadata' in doc:
-            metadata = doc['document_metadata']
-            if 'tags' in metadata:
-                all_tags.update(metadata['tags'])
-            if 'urls' in metadata:
-                all_urls.update(metadata['urls'])
+        rag = RAGPretrainedModel.from_index(".ragatouille/colbert/indexes/document_collection/")
+        docs = rag.search(query, k=num_docs)
+        doc_contents = [doc['content'] for doc in docs]
+        reranked_docs = rag.rerank(query=query, documents=doc_contents, k=10)
+        rag_time_ms = (time.time() - start_time) * 1000  # Convert to milliseconds
+        # Construct the context from reranked documents
+        context = "\n".join([doc['content'] for doc in reranked_docs])
+        # Extract metadata from reranked documents
+        all_tags = set()
+        all_urls = set()
+        for doc in docs:
+            if 'document_metadata' in doc:
+                metadata = doc['document_metadata']
+                if 'tags' in metadata:
+                    all_tags.update(metadata['tags'])
+                if 'urls' in metadata:
+                    all_urls.update(metadata['urls'])
 
     # set the maximum context window, should match ollama settings and model capabilities
     max_context = 4096
@@ -102,7 +91,6 @@ def rag_search(query, conversation_history, num_docs=20, client=None):
 
     # Build the fixed parts of the prompt
     # might add -  The code examples must be thorough enough for a detection engineer to write detections.
-    print("compiling prompt for ollama...")
     fixed_prompt = """You are an assistant helping with cybersecurity queries. When providing code examples, format them
 as Markdown code blocks with the appropriate language specified for syntax highlighting.
 
@@ -111,20 +99,16 @@ Context:
 
 Conversation History:
 """
-    print("formatting prompt...")
+
     fixed_prompt_with_context = fixed_prompt.format(context=context)
-    print("estimating tokens...")
     fixed_prompt_tokens = estimate_tokens(fixed_prompt_with_context)
-    print("calculating max tokens...")
     # Calculate the maximum tokens available for conversation history
     max_tokens_for_history = max_context - fixed_prompt_tokens - buffer
-    print("appending to history...")
     # Update the conversation history with the new turn
     conversation_history.append({'user': query, 'assistant': None})
 
     # Estimate tokens in conversation history
     total_history_tokens = 0
-    print("estimating total token history...")
     for turn in conversation_history:
         total_history_tokens += estimate_tokens_for_turn(turn)
 
@@ -182,15 +166,12 @@ def main():
     while True:
         # Get user input with a prompt
         user_query = Prompt.ask("[bold green]You[/bold green]", console=console)
-        print("user query entered...")
         if user_query.lower() in ['exit', 'quit']:
             console.print("[bold red]Goodbye![/bold red]")
             break
-        print("no special opts selected")
         # Get the assistant's response
         try:
             with console.status("[bold yellow]Searching...[/bold yellow]", spinner="dots"):
-                print("Attempting to load user query...")
                 answer, rag_time_ms, ollama_time_ms, user_query_tokens, ollama_response_tokens, tags, urls = rag_search(
                     user_query, conversation_history, client=ollama_client)
         except Exception as e:

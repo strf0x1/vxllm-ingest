@@ -1,7 +1,7 @@
 import argparse
 import time
 import sys
-from vxllm.document_processing.loader import process_documents
+from vxllm.document_processing.loader import process_documents, generate_metadata
 from vxllm.indexing.rag_indexer import RAGIndexer
 from vxllm.utils.file_utils import check_directory_exists
 
@@ -11,11 +11,13 @@ def main():
 
     parser = argparse.ArgumentParser(description="Process and index documents.")
     parser.add_argument("--data", help="Directory path containing documents to process", default="data/")
+    parser.add_argument("--metadata-enabled", action="store_true", help="Generate or regenerate metadata for documents")
     args = parser.parse_args()
 
-    print(f"Parsed arguments: {args}")
     directory = args.data
     print(f"Using directory: {directory}")
+    metadata_enabled = args.metadata_enabled
+    print(f"Generate metadata: {metadata_enabled}")
 
     try:
         check_directory_exists(directory)
@@ -23,7 +25,8 @@ def main():
         print(f"Error: {str(e)}")
         return
 
-    documents, processed_files, duplicate_files, processing_time = process_documents(directory)
+
+    documents, processed_files, duplicate_files, processing_time = process_documents(directory, should_generate_metadata=metadata_enabled)
 
     print(f"Number of unique files processed: {processed_files}")
     print(f"Number of duplicate files skipped: {duplicate_files}")
