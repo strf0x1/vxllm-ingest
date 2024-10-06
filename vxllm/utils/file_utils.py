@@ -15,7 +15,7 @@ def compute_document_hash(document):
     return hashlib.md5(document.page_content.encode()).hexdigest()
 
 
-def check_directory_exists(directory):
+def check_directory_empty(directory):
     if not os.path.exists(directory):
         raise FileNotFoundError(f"The specified directory does not exist: {directory}")
     if not os.path.isdir(directory):

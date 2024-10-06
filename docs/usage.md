@@ -28,24 +28,26 @@ There are some really great local models available now. I used the default q4 mo
   * qwen2.5 - New model on the block that performs really well and a little bit faster than nemo. On evals, it actually tends to perform a little better than nemo.
   * gemma2b - 2b model from google that has performed surprisingly well and fast for its size. It performs competitively with much larger models on code evals.
   
-If you would like to extend the context length of the model, the easiest way is to duplicate an existing Modelfile and
-import it into Ollama:
+Context length is the number of tokens (roughly 4 letters per token) a model can process at a time. In this case, it 
+represents the model's memory of the conversation, but the more context you have, the more gpu RAM you'll need. If you 
+would like to extend the context length of the model, the easiest way is to duplicate an existing Modelfile and import 
+it into Ollama:
 ```bash
 ollama show gemma2:2b --modelfile > Modelfile
 vim Modelfile
 # in vim, add this below the other parameters: PARAMETER num_ctx 8096
 ollama create gemma2:2b-8096 --file Modelfile
 ```
-Then you'll want to tweak cli.py at the top for these values:
-```
-console = Console()
-ollama_model="gemma2:2b-8096"
-max_context=8096
+Then you can pass those values like this:
+```bash
+OLLAMA_MODEL="gemma2:2b-8096" MAX_CONTEXT="8096" ./run_container.sh
 ```
 Refer to the model's docs for max suggested context length.
 
 ## Example queries you can use:
   * explain linux process injection to me
   * what are anti-reversing techinques and give me some code examples
-  * help me write a detection in Splunk for Hell's Gate
-
+  * help me write a detection for (insert technique)
+  
+Then you can iterate on those questions. Ask for more thorough code examples, then maybe ask for detection techniques
+against the above code example (quality will vary based on how big your context length is).

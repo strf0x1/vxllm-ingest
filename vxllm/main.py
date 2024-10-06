@@ -20,8 +20,9 @@ def main():
     print(f"Generate metadata: {metadata_enabled}")
 
     try:
-        check_directory_exists(directory)
+        check_directory_empty(directory)
     except (FileNotFoundError, NotADirectoryError, ValueError) as e:
+        print("Data Directory is empty...")
         print(f"Error: {str(e)}")
         return
 

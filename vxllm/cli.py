@@ -10,11 +10,15 @@ import pyfiglet
 import logging
 import contextlib
 import io
+import os
 import argparse
 
 console = Console()
-ollama_model="mistral-nemo"
-max_context=2000
+ollama_model = os.environ.get('OLLAMA_MODEL', 'mistral-nemo')
+max_context = int(os.environ.get('MAX_CONTEXT', '2000'))
+
+print(f"Ollama model: {ollama_model}")
+print(f"Context length: {max_context}")
 
 # suppress noisy output from ragatouille
 logging.getLogger('ragatouille').setLevel(logging.WARNING)
