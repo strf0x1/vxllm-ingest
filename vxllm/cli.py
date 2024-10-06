@@ -13,8 +13,10 @@ import io
 import argparse
 
 console = Console()
+ollama_model="mistral-nemo"
+max_context=2000
 
-# Set the logging level for RAGatouille to WARNING
+# suppress noisy output from ragatouille
 logging.getLogger('ragatouille').setLevel(logging.WARNING)
 
 # Attempt to use a more accurate tokenizer if possible
@@ -49,7 +51,7 @@ def estimate_tokens_in_conversation(conversation):
 # qwen2.5-coder:1.5b-instruct - ok at summaries but won't answer code
 # gemma2:2b - this one is pretty good and fast
 # mistral-nemo - best
-def query_ollama(prompt, model="mistral-nemo", client=None):
+def query_ollama(prompt, model=ollama_model, client=None):
     # Start timer for Ollama response time
     start_time = time.time()
     if client:
@@ -64,13 +66,13 @@ def rag_search(query, conversation_history, num_docs=20, client=None):
     # Start timer for RAG response time
     start_time = time.time()
 
-    # Suppress stdout and stderr during RAGatouille operations
+    # Suppress stdout and stderr during ragatouille usage
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
         # Load the ColBERT index and perform the search
         rag = RAGPretrainedModel.from_index(".ragatouille/colbert/indexes/document_collection/")
         docs = rag.search(query, k=num_docs)
         doc_contents = [doc['content'] for doc in docs]
-        reranked_docs = rag.rerank(query=query, documents=doc_contents, k=10)
+        reranked_docs = rag.rerank(query=query, documents=doc_contents, k=5)
         rag_time_ms = (time.time() - start_time) * 1000  # Convert to milliseconds
         # Construct the context from reranked documents
         context = "\n".join([doc['content'] for doc in reranked_docs])
@@ -86,7 +88,7 @@ def rag_search(query, conversation_history, num_docs=20, client=None):
                     all_urls.update(metadata['urls'])
 
     # set the maximum context window, should match ollama settings and model capabilities
-    max_context = 4096
+    # max_context = 8096
     buffer = 100  # Buffer to ensure we don't exceed the context limit
 
     # Build the fixed parts of the prompt

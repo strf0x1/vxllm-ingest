@@ -54,7 +54,7 @@ def process_documents(directory, should_generate_metadata=False):
 
                     # generate metadata with ollama
                     if should_generate_metadata:
-                        print("Processing metadata...")
+                        print(f"Processing {file_path}...")
                         metadata = generate_metadata(doc)
                         doc.metadata.update(metadata)
                         meta_file_path = f"{os.path.splitext(file_path)[0]}.meta"

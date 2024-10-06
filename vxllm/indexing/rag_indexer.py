@@ -3,7 +3,7 @@ from ragatouille import RAGPretrainedModel
 
 class RAGIndexer:
     def __init__(self):
-        self.rag = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
+            self.rag = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
 
     def index_documents(self, documents):
         texts = [doc.page_content for doc in documents]

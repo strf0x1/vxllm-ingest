@@ -28,3 +28,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 vxllm = "vxllm.main:main"
 cli = "vxllm.cli:main"
+evaluate = "vxllm.evaluate:main"

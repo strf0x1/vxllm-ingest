@@ -5,10 +5,20 @@ comparison and can detect paraphrasing. It also uses BERT for semantic compariso
   
 The eval script can take a long time because it ingests the data and generates the qa pairs all in one shot for consistency. To run:
 ```bash
-poetry run python evaluate_bertscore.py
+poetry run evaluate
+```
+By default, it will generate and evaluate against 10 QA pairs. This is good for a quick test, but a couple hundred will 
+be more accurate:
+```bash
+poetry run evaluate --qa-pairs 200
 ```
   
-Here's an example score using the VX Underground dataset and 200 QA pairs:
+You can tweak number of docs returned and rerank returned:
+```bash
+poetry run evaluate --qa-pairs 10 --k 20 --rerank 3
+```
+  
+Here's an example score using the VX Underground dataset with 200 QA pairs:
   
 ```bash
 Average BERTScore F1: 0.8424883899092674
