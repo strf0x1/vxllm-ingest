@@ -29,6 +29,7 @@ Once your drivers are installed, run:
 ```bash
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
+sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
 ```
   
 At this point, you need to decide what data you want to ingest.  If you want to test with the data user in this project, 
