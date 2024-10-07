@@ -2390,6 +2390,17 @@ python-dateutil = ">=2.7"
 dev = ["meson-python (>=0.13.1)", "numpy (>=1.25)", "pybind11 (>=2.6)", "setuptools (>=64)", "setuptools_scm (>=7)"]
 
 [[package]]
+name = "mdextractor"
+version = "0.0.3"
+description = "Extract Markdown code blocks from text strings."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "mdextractor-0.0.3-py3-none-any.whl", hash = "sha256:230415829692e6d27da4311bf7bf2720c9f1f2ee277f930a230a34dd6431f3f6"},
+    {file = "mdextractor-0.0.3.tar.gz", hash = "sha256:7310fa18267025480bac3a35239fab56eb91129c278bc481837212ac81cf897c"},
+]
+
+[[package]]
 name = "mdurl"
 version = "0.1.2"
 description = "Markdown URL utilities"
@@ -5465,4 +5476,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d6562c9b484b9f621b510231ac78bbd7a1eca2884b284fd2f8101fce99beb60d"
+content-hash = "bfec3c9f29365b3ee2b457a5e6140b4a6caecfcb3c6c83f10dbfa2773b378b5a"

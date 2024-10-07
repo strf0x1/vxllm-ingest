@@ -10,7 +10,7 @@ import ollama
 from bert_score import score
 from vxllm.document_processing.loader import process_documents, generate_metadata
 
-ollama_model = os.environ.get('OLLAMA_MODEL', 'mistral-nemo')
+ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma2:2b')
 max_context = int(os.environ.get('MAX_CONTEXT', '2000'))
 
 print(f"Ollama model: {ollama_model}")
@@ -76,7 +76,7 @@ Answer:
     return qa_pairs
 
 
-def generate_answer_with_ollama(query, context, model="mistral-nemo", client=None):
+def generate_answer_with_ollama(query, context, model="gemma2:2b", client=None):
     prompt_template = """You are an assistant helping with cybersecurity queries. When providing code examples, format them
 as Markdown code blocks with the appropriate language specified for syntax highlighting.
 
@@ -98,7 +98,7 @@ Answer:"""
         return ""
 
 
-def evaluate_rag_system(rag, evaluation_dataset, docs_num=10, model="mistral-nemo", client=None, rerank_num=3):
+def evaluate_rag_system(rag, evaluation_dataset, docs_num=10, model="gemma2:2b", client=None, rerank_num=3):
     results = []
     for data in evaluation_dataset:
         query = data['query']

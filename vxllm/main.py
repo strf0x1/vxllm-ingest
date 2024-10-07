@@ -1,9 +1,11 @@
 import argparse
 import time
 import sys
+import os
 from vxllm.document_processing.loader import process_documents, generate_metadata
 from vxllm.indexing.rag_indexer import RAGIndexer
-from vxllm.utils.file_utils import check_directory_exists
+from vxllm.utils.file_utils import check_directory_empty
+import argparse
 
 
 def main():
@@ -19,6 +21,9 @@ def main():
     metadata_enabled = args.metadata_enabled
     print(f"Generate metadata: {metadata_enabled}")
 
+    ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma2:2b')
+    print(f"Ollama model: {ollama_model}")
+
     try:
         check_directory_empty(directory)
     except (FileNotFoundError, NotADirectoryError, ValueError) as e:
@@ -27,11 +32,12 @@ def main():
         return
 
 
-    documents, processed_files, duplicate_files, processing_time = process_documents(directory, should_generate_metadata=metadata_enabled)
+    documents, processed_files, duplicate_files, processing_time = process_documents(directory, should_generate_metadata=metadata_enabled, model=ollama_model)
 
     print(f"Number of unique files processed: {processed_files}")
     print(f"Number of duplicate files skipped: {duplicate_files}")
     print(f"Total processing time: {processing_time:.2f} seconds")
+    # debug float by division 0 bug
     print(f"Average time per file: {processing_time / (processed_files + duplicate_files):.2f} seconds")
 
     indexer = RAGIndexer()

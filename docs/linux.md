@@ -11,8 +11,8 @@ Environment="OLLAMA_HOST=0.0.0.0"
 # daemon-reload to take the changes
 sudo systemctl daemon-reload
 sudo systemctl restart ollama
-# whatever model you want to use, mistral nemo generally works the best. 
-ollama pull mistral-nemo
+# whatever model you want to use, mistral nemo generally works the best, but gemma2 is much smaller and performs well.
+ollama pull gemma2:2b
 ```
 For the best performance, you will need an NVIDIA card with CUDA support and docker with gpu passthrough enabled.
 Specifically, you will need the NVIDIA drivers and CUDA toolkit (tested with 11.x and 12.1). For Ubuntu refer 

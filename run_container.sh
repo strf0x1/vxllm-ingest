@@ -2,7 +2,7 @@
 OLLAMA_MODEL=""
 MAX_CONTEXT=""
 # default to this directory, data folder. replace with your own data dir
-DATA_DIR="$PWD/data/"
+DATA_DIR="$PWD/data"
 # this should not change
 RAG_DB_DIR="$PWD/.ragatouille"
 # attempt to fetch the primary adapter's ip, pass it over to the container via .env import
@@ -30,12 +30,10 @@ fi
 
 # init env vars for container
 echo "OLLAMA_HOST=$ipaddress" > .env
-
+# if not blank at top of file
 if [ ! -z "$OLLAMA_MODEL" ]; then
     echo "OLLAMA_MODEL=$OLLAMA_MODEL" >> .env
 fi
-
-# Append MAX_CONTEXT to .env if not blank
 if [ ! -z "$MAX_CONTEXT" ]; then
     echo "MAX_CONTEXT=$MAX_CONTEXT" >> .env
 fi

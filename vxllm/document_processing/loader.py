@@ -5,7 +5,15 @@ import json
 from langchain.schema import Document
 from .extractor import extract_text_from_pdf
 from ..utils.file_utils import load_meta_file, compute_document_hash
+import re
 
+def strip_markdown_code_blocks(text):
+    # markdown code blocks with optional json specifier
+    pattern = r'```(?:json)?\s*([\s\S]*?)\s*```'
+    match = re.search(pattern, text)
+    if match:
+        return match.group(1).strip()
+    return text
 
 def load_document(file_path):
     _, ext = os.path.splitext(file_path)
@@ -36,7 +44,7 @@ def load_document(file_path):
     return Document(page_content=text, metadata=metadata)
 
 
-def process_documents(directory, should_generate_metadata=False):
+def process_documents(directory, should_generate_metadata=False, model="gemma2:2b"):
     print("Processing documents...")
     supported_extensions = ['.txt', '.md', '.c', '.cpp', '.go', '.pdf']
     documents = []
@@ -77,7 +85,7 @@ def process_documents(directory, should_generate_metadata=False):
     return documents, processed_files, duplicate_files, processing_time
 
 
-def generate_metadata(document, max_retries=4):
+def generate_metadata(document, max_retries=4, model='gemma2:2b'):
     metadata_prompt = f"""
     Based on the following document, generate a JSON object with the following fields:
     1. title: Extract or generate a concise title for the document (string)
@@ -94,7 +102,7 @@ def generate_metadata(document, max_retries=4):
         "tags": ["string", "string", ...],
         "urls": ["string", "string", ...]
     }}
-
+    
     Document summary:
     {document.page_content[:1200]}
 
@@ -103,9 +111,11 @@ def generate_metadata(document, max_retries=4):
 
     for attempt in range(max_retries):
         try:
-            metadata_response = ollama.generate(model='mistral-nemo', prompt=metadata_prompt)
+            metadata_response = ollama.generate(model=model, prompt=metadata_prompt)
             metadata_str = metadata_response['response']
-
+            # a lot of llms cant resist the urge to put json in md code blocks. have tried prompt engineering it away
+            metadata_str = strip_markdown_code_blocks(metadata_str)
+            print(f"metadata_str {metadata_str}")
             metadata = json.loads(metadata_str)
 
             # handle case of valid json returned, but schema does not conform
@@ -117,6 +127,7 @@ def generate_metadata(document, max_retries=4):
             return metadata
         except json.JSONDecodeError:
             print(f"Attempt {attempt + 1}: Failed to parse JSON")
+            print(metadata_str)
             if attempt < max_retries - 1:
                 continue
         except Exception as e:

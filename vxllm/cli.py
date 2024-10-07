@@ -1,5 +1,6 @@
 import time
 import ollama
+from nltk.corpus.reader import documents
 from ragatouille import RAGPretrainedModel
 from rich.console import Console
 from rich.prompt import Prompt
@@ -7,14 +8,17 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.text import Text
 import pyfiglet
+import warnings
 import logging
 import contextlib
 import io
 import os
 import argparse
+from transformers import AutoTokenizer
+
 
 console = Console()
-ollama_model = os.environ.get('OLLAMA_MODEL', 'mistral-nemo')
+ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma2:2b')
 max_context = int(os.environ.get('MAX_CONTEXT', '2000'))
 
 print(f"Ollama model: {ollama_model}")
@@ -23,19 +27,12 @@ print(f"Context length: {max_context}")
 # suppress noisy output from ragatouille
 logging.getLogger('ragatouille').setLevel(logging.WARNING)
 
-# Attempt to use a more accurate tokenizer if possible
-try:
-    from transformers import AutoTokenizer
-    # Initialize the tokenizer - just using gpt2 for quick estimation - llama needs a login so this is easier
-    tokenizer = AutoTokenizer.from_pretrained("gpt2", clean_up_tokenization_spaces=True)
+# no reliable way to silence this warning other than this
+warnings.filterwarnings("ignore", message="Token indices sequence length is longer than the specified maximum sequence length for this model*")
+tokenizer = AutoTokenizer.from_pretrained("gpt2", clean_up_tokenization_spaces=True)
 
-    def estimate_tokens(text):
-        return len(tokenizer.encode(text))
-except ImportError:
-    # Fall back to simple estimation if transformers is not installed
-    def estimate_tokens(text):
-        # Simple estimation: assume average of 4 characters per token
-        return len(text) / 4
+def estimate_tokens(text):
+    return len(tokenizer.encode(text))
 
 
 def estimate_tokens_for_turn(turn):
@@ -52,9 +49,6 @@ def estimate_tokens_in_conversation(conversation):
     return total_tokens
 
 
-# qwen2.5-coder:1.5b-instruct - ok at summaries but won't answer code
-# gemma2:2b - this one is pretty good and fast
-# mistral-nemo - best
 def query_ollama(prompt, model=ollama_model, client=None):
     # Start timer for Ollama response time
     start_time = time.time()
@@ -81,11 +75,16 @@ def rag_search(query, conversation_history, num_docs=20, client=None):
         # Construct the context from reranked documents
         context = "\n".join([doc['content'] for doc in reranked_docs])
         # Extract metadata from reranked documents
+        all_filepaths = set()
         all_tags = set()
         all_urls = set()
         for doc in docs:
             if 'document_metadata' in doc:
+                console.print(doc['document_metadata'])
+                console.print(type(doc['document_metadata']))
                 metadata = doc['document_metadata']
+                if 'source' in metadata:
+                    all_filepaths.add(metadata['filepath'])
                 if 'tags' in metadata:
                     all_tags.update(metadata['tags'])
                 if 'urls' in metadata:
@@ -147,7 +146,7 @@ Conversation History:
     conversation_history[-1]['assistant'] = answer
 
     # Return the answer and metrics
-    return answer, rag_time_ms, ollama_time_ms, user_query_tokens, ollama_response_tokens, list(all_tags), list(all_urls)
+    return answer, rag_time_ms, ollama_time_ms, user_query_tokens, ollama_response_tokens, list(all_filepaths), list(all_tags), list(all_urls)
 
 
 def main():
@@ -178,7 +177,7 @@ def main():
         # Get the assistant's response
         try:
             with console.status("[bold yellow]Searching...[/bold yellow]", spinner="dots"):
-                answer, rag_time_ms, ollama_time_ms, user_query_tokens, ollama_response_tokens, tags, urls = rag_search(
+                answer, rag_time_ms, ollama_time_ms, user_query_tokens, ollama_response_tokens, filepaths, tags, urls = rag_search(
                     user_query, conversation_history, client=ollama_client)
         except Exception as e:
             console.print(f"[bold red]An error occurred:[/bold red] {e}")
@@ -189,6 +188,10 @@ def main():
         console.print(Panel(markdown, title="[bold magenta]Assistant[/bold magenta]", border_style="magenta"))
 
         # Display tags and references
+        if filepaths:
+            console.print("[bold blue]Source Documents:[/bold blue]")
+            for filepath in filepaths:
+                console.print(f"  - {filepath}")
         if tags:
             console.print("[bold blue]Tags:[/bold blue]", ", ".join(tags))
         if urls:
