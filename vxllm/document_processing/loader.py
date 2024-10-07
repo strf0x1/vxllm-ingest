@@ -7,6 +7,11 @@ from .extractor import extract_text_from_pdf
 from ..utils.file_utils import load_meta_file, compute_document_hash
 import re
 
+PLAIN_TEXT_EXTENSIONS = ['.txt', '.md']
+SPECIALIZED_DOCUMENT_EXTENSIONS = ['.pdf']
+CODE_FILE_EXTENSIONS = ['.c', '.h', '.asm', '.cpp', '.go', '.rs']
+SUPPORTED_EXTENSIONS = PLAIN_TEXT_EXTENSIONS + SPECIALIZED_DOCUMENT_EXTENSIONS + CODE_FILE_EXTENSIONS
+
 
 def strip_markdown_code_blocks(text):
     # markdown code blocks with optional json specifier
@@ -21,19 +26,22 @@ def load_document(file_path):
     _, ext = os.path.splitext(file_path)
     ext = ext.lower()
 
-    if ext == '.txt':
-        with open(file_path, 'r', encoding='utf-8') as file:
-            text = file.read()
-    elif ext == '.md':
-        with open(file_path, 'r', encoding='utf-8') as file:
-            text = file.read()
-    elif ext == '.pdf':
-        text = extract_text_from_pdf(file_path)
-    elif ext in ['.c', '.cpp', '.go']:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            text = file.read()
-    else:
+    if ext not in SUPPORTED_EXTENSIONS:
         raise ValueError(f"Unsupported file type: {ext}")
+
+    if ext in PLAIN_TEXT_EXTENSIONS:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text = file.read()
+    elif ext in CODE_FILE_EXTENSIONS:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text = file.read()
+    elif ext in SPECIALIZED_DOCUMENT_EXTENSIONS:
+        if ext == '.pdf':
+            text = extract_text_from_pdf(file_path)
+        else:
+            raise NotImplementedError(f"Extraction for {ext} is not implemented yet")
+    else:
+        raise ValueError(f"Unexpected file type: {ext}")
 
     metadata = {
         "source": file_path,
@@ -48,7 +56,6 @@ def load_document(file_path):
 
 def process_documents(directory, should_generate_metadata=False, model="gemma2:2b"):
     print("Processing documents...")
-    supported_extensions = ['.txt', '.md', '.c', '.cpp', '.go', '.pdf']
     documents = []
     processed_files = 0
     duplicate_files = 0
@@ -57,12 +64,11 @@ def process_documents(directory, should_generate_metadata=False, model="gemma2:2
 
     for root, _, files in os.walk(directory):
         for file in files:
-            if any(file.lower().endswith(ext) for ext in supported_extensions):
+            if any(file.lower().endswith(ext) for ext in SUPPORTED_EXTENSIONS):
                 file_path = os.path.join(root, file)
                 try:
                     doc = load_document(file_path)
 
-                    # generate metadata with ollama
                     if should_generate_metadata:
                         print(f"Processing {file_path}...")
                         metadata = generate_metadata(doc)
