@@ -43,6 +43,12 @@ Then you can pass those values like this:
 OLLAMA_MODEL="gemma2:2b-8096" MAX_CONTEXT="8096" ./run_container.sh
 ```
 Refer to the model's docs for max suggested context length.
+  
+On mac, you can just export these environment variables to switch:
+```bash
+export OLLAMA_MODEL="gemma2:2b-8096"
+export MAX_CONTEXT="8096"
+```
 
 ## Example queries you can use:
   * explain linux process injection to me
