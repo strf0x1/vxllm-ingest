@@ -19,6 +19,8 @@ Searching:
 ```bash
 poetry run cli
 ```
+Type **exit** to quit the cli.
+  
 After a fresh ingest, the first query you make will be slower because Ragatouille does some initialization. It improves 
 for subsequent queries:
   
