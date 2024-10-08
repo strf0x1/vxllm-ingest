@@ -34,13 +34,11 @@ Evals of different models + settings with the VX Underground dataset:
 | qwen-2.5-coder 7b | 8096 | 200 | 10 | 3 | 0.8369064947962761 |
 | qwen-2.5-coder 7b | 8096 | 200 | 20 | 10 | 0.841939592063427 |
 
-What's interesting is that gemma2:2b is achieving slightly better scores than the 12b mistral-nemo. This might have to
-do with gemma2's strength in summarization, which comes down to model purpose and training. Mistral-nemo is the better
-overall coder.
-  
-As someone deeply interested in malware development, the responses from mistral-nemo did seem subjectively higher quality.
-For example, mistral-nemo would seem to prefer writing detailed code responses, while gemma2 would tend to summarize more. 
-This isn't something BERTScore really evaluates, so some sort of custom evaluation targeting code development might be 
+What's interesting is that gemma2:2b is achieving slightly better scores than 12b mistral-nemo. This might have to
+do with gemma2's strength in summarization, which comes down to model intended purpose and training. Mistral-nemo is 
+the better overall coder.
+   
+This isn't something BERTScore evaluate well, so some sort of custom evaluation targeting code development might be 
 needed to test this.
   
 ## References:

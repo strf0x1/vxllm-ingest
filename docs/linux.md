@@ -32,11 +32,11 @@ sudo systemctl restart docker
 sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
 ```
   
-At this point, you need to decide what data you want to ingest.  If you want to test with the data user in this project, 
-click [here](https://github.com/strf0x1/vxug-papers), click the green **Code** button, and choose **Download Zip**. Just unpack it a folder called data in 
+At this point, you need to decide what data you want to ingest.  If you want to test with the data used in this project, 
+click [here](https://github.com/strf0x1/vxug-papers), click the green **Code** button, and choose **Download Zip**. Just unpack it in a folder called data in 
 the root of this project.
   
-If you want to use a different directory, modify the **DATA_DIR** directory to point to your 
+If you want to use a different directory, modify the **DATA_DIR** directory in **run_container.sh** to point to your 
 data folder.
 ```bash
 vim run_container.sh
