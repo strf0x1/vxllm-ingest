@@ -14,8 +14,8 @@ class RAGIndexer:
                 collection=texts,
                 document_metadatas=metadatas,
                 index_name="document_collection",
-                max_document_length=256,
-                split_documents=True
+                max_document_length=2000,  # this should be rare cases where med to large functions are returned
+                split_documents=False    # now handled by text_splitter
             )
         except AssertionError as e:
             print(f"AssertionError during FAISS KMeans training: {e}")

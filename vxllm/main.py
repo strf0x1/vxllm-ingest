@@ -14,12 +14,17 @@ def main():
     parser = argparse.ArgumentParser(description="Process and index documents.")
     parser.add_argument("--data", help="Directory path containing documents to process", default="data/")
     parser.add_argument("--metadata-enabled", action="store_true", help="Generate or regenerate metadata for documents")
+    parser.add_argument("--chunk-size", type=int, default=1000, help="Size of document chunks")
+    parser.add_argument("--chunk-overlap", type=int, default=200, help="Overlap between document chunks")
     args = parser.parse_args()
 
     directory = args.data
     print(f"Using directory: {directory}")
     metadata_enabled = args.metadata_enabled
     print(f"Generate metadata: {metadata_enabled}")
+    chunk_size = args.chunk_size
+    chunk_overlap = args.chunk_overlap
+    print(f"Chunk size: {chunk_size}, Chunk overlap: {chunk_overlap}")
 
     ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma2:2b')
     print(f"Ollama model: {ollama_model}")
@@ -31,8 +36,13 @@ def main():
         print(f"Error: {str(e)}")
         return
 
-
-    documents, processed_files, duplicate_files, processing_time = process_documents(directory, should_generate_metadata=metadata_enabled, model=ollama_model)
+    documents, processed_files, duplicate_files, processing_time = process_documents(
+        directory,
+        should_generate_metadata=metadata_enabled,
+        model=ollama_model,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap
+    )
 
     print(f"Number of unique files processed: {processed_files}")
     print(f"Number of duplicate files skipped: {duplicate_files}")

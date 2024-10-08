@@ -5,11 +5,13 @@ import json
 from langchain.schema import Document
 from .extractor import extract_text_from_pdf
 from ..utils.file_utils import load_meta_file, compute_document_hash
+from .text_splitter import split_documents, extension_to_language
 import re
+
 
 PLAIN_TEXT_EXTENSIONS = ['.txt', '.md']
 SPECIALIZED_DOCUMENT_EXTENSIONS = ['.pdf']
-CODE_FILE_EXTENSIONS = ['.c', '.h', '.asm', '.cpp', '.go', '.rs']
+CODE_FILE_EXTENSIONS = list(extension_to_language.keys())
 SUPPORTED_EXTENSIONS = PLAIN_TEXT_EXTENSIONS + SPECIALIZED_DOCUMENT_EXTENSIONS + CODE_FILE_EXTENSIONS
 
 
@@ -54,7 +56,7 @@ def load_document(file_path):
     return Document(page_content=text, metadata=metadata)
 
 
-def process_documents(directory, should_generate_metadata=False, model="gemma2:2b"):
+def process_documents(directory, should_generate_metadata=False, model="gemma2:2b", chunk_size=500, chunk_overlap=0):
     print("Processing documents...")
     documents = []
     processed_files = 0
@@ -68,18 +70,18 @@ def process_documents(directory, should_generate_metadata=False, model="gemma2:2
                 file_path = os.path.join(root, file)
                 try:
                     doc = load_document(file_path)
+                    print(f"Doc {file_path} has a type of {type(doc)}")
+                    doc_hash = compute_document_hash(doc.page_content)
 
-                    if should_generate_metadata:
-                        print(f"Processing {file_path}...")
-                        metadata = generate_metadata(doc)
-                        doc.metadata.update(metadata)
-                        meta_file_path = f"{os.path.splitext(file_path)[0]}.meta"
-                        with open(meta_file_path, 'w', encoding='utf-8') as meta_file:
-                            json.dump(metadata, meta_file, indent=2)
-
-                    # hashing for deduping documents
-                    doc_hash = compute_document_hash(doc)
                     if doc_hash not in document_hashes:
+                        if should_generate_metadata:
+                            print(f"Processing {file_path}...")
+                            metadata = generate_metadata(doc)
+                            doc.metadata.update(metadata)
+                            meta_file_path = f"{os.path.splitext(file_path)[0]}.meta"
+                            with open(meta_file_path, 'w', encoding='utf-8') as meta_file:
+                                json.dump(metadata, meta_file, indent=2)
+
                         documents.append(doc)
                         document_hashes.add(doc_hash)
                         processed_files += 1
@@ -89,8 +91,11 @@ def process_documents(directory, should_generate_metadata=False, model="gemma2:2
                 except Exception as e:
                     print(f"Error processing {file_path}: {str(e)}")
 
+    # Split documents after processing
+    split_docs = split_documents(documents, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+
     processing_time = time.time() - start_time
-    return documents, processed_files, duplicate_files, processing_time
+    return split_docs, processed_files, duplicate_files, processing_time
 
 
 def generate_metadata(document, max_retries=4, model='gemma2:2b'):

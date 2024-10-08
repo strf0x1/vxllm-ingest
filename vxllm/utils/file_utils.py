@@ -11,8 +11,8 @@ def load_meta_file(file_path):
     return {}
 
 
-def compute_document_hash(document):
-    return hashlib.md5(document.page_content.encode()).hexdigest()
+def compute_document_hash(page_content):
+    return hashlib.md5(page_content.encode()).hexdigest()
 
 
 def check_directory_empty(directory):

@@ -23,6 +23,9 @@ vxllm uses [ColBERTv2](https://arxiv.org/abs/2112.01488) for embedding, retrieva
 ## architecture explanation
 [architecture](docs/architecture.md)
   
+## writeup
+[writeup](docs/writeup.md)
+  
 ## evaluations
 BERTScore evaluation:  
 

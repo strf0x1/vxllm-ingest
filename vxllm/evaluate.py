@@ -9,6 +9,7 @@ import argparse
 import ollama
 from bert_score import score
 from vxllm.document_processing.loader import process_documents, generate_metadata
+from vxllm.document_processing.text_splitter import split_documents
 
 ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma2:2b')
 max_context = int(os.environ.get('MAX_CONTEXT', '2000'))
@@ -136,30 +137,26 @@ def evaluate_rag_system(rag, evaluation_dataset, docs_num=10, model="gemma2:2b",
 
 
 def main():
-    # --client allows remote Ollama server or separate container env
-    parser = argparse.ArgumentParser(description="rag bertscore eval script")
+    parser = argparse.ArgumentParser(description="RAG BERTScore evaluation script")
     parser.add_argument("--client", help="Ollama client URL (e.g., https://1.2.3.4:11434)")
     parser.add_argument("--data", help="Directory path containing documents to process", default="data/")
-    parser.add_argument("--qa-pairs", type=int, default=10, help="how many QA pairs you'd like to generate")
-    parser.add_argument("--k", type=int, default=10, help="how many QA pairs you'd like to generate")
-    parser.add_argument("--rerank", type=int, default=3, help="how many QA pairs you'd like to generate")
+    parser.add_argument("--qa-pairs", type=int, default=10, help="Number of QA pairs to generate")
+    parser.add_argument("--k", type=int, default=10, help="Number of documents to retrieve")
+    parser.add_argument("--rerank", type=int, default=3, help="Number of documents to rerank")
+    parser.add_argument("--chunk-size", type=int, default=2000, help="Size of document chunks")
+    parser.add_argument("--chunk-overlap", type=int, default=200, help="Overlap between document chunks")
     args = parser.parse_args()
 
-    ollama_client = None
+    ollama_client = ollama.Client(host=args.client) if args.client else None
 
     directory = args.data
-
-    if args.client:
-        ollama_client = ollama.Client(host=args.client)
-        print(f"Connected to Ollama at {args.client}")
-    else:
-        ollama_client = None  # use default Ollama settings
-
     qa_pairs = args.qa_pairs
     docs_num = args.k
     rerank_num = args.rerank
+    chunk_size = args.chunk_size
+    chunk_overlap = args.chunk_overlap
 
-    # process documents
+    # Process documents
     documents, processed_files, duplicate_files, processing_time = process_documents(directory)
 
     print(f"Number of unique files processed: {processed_files}")
@@ -167,9 +164,13 @@ def main():
     print(f"Total processing time: {processing_time:.2f} seconds")
     print(f"Average time per file: {processing_time / (processed_files + duplicate_files):.2f} seconds")
 
-    # extract text content and metadata from documents
-    texts = [doc.page_content for doc in documents]
-    metadatas = [doc.metadata for doc in documents]
+    # Split documents
+    split_docs = split_documents(documents, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    print(f"Number of chunks after splitting: {len(split_docs)}")
+
+    # Extract text content and metadata from split documents
+    texts = [doc.page_content for doc in split_docs]
+    metadatas = [doc.metadata for doc in split_docs]
 
     rag = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
 
@@ -180,7 +181,7 @@ def main():
             document_metadatas=metadatas,
             index_name="document_collection",
             max_document_length=256,
-            split_documents=True
+            split_documents=False  # We've already split the documents
         )
     except AssertionError as e:
         print(f"AssertionError during FAISS KMeans training: {e}")
@@ -190,14 +191,14 @@ def main():
     indexing_time = time.time() - indexing_start_time
 
     print(f"Indexing time: {indexing_time:.2f} seconds")
-    print(f"Average time per unique document: {indexing_time / len(documents):.2f} seconds")
+    print(f"Average time per chunk: {indexing_time / len(split_docs):.2f} seconds")
 
     total_time = processing_time + indexing_time
     print(f"Total ingestion time: {total_time:.2f} seconds")
     print(f"Average time per original document: {total_time / (processed_files + duplicate_files):.2f} seconds")
 
     print("Generating QA pairs using Ollama...")
-    evaluation_dataset = generate_qa_pairs_with_ollama(documents, num_pairs=qa_pairs, model=ollama_model, client=ollama_client)
+    evaluation_dataset = generate_qa_pairs_with_ollama(split_docs, num_pairs=qa_pairs, model=ollama_model, client=ollama_client)
 
     with open('evaluation_dataset.json', 'w', encoding='utf-8') as f:
         json.dump(evaluation_dataset, f, ensure_ascii=False, indent=4)
@@ -207,11 +208,11 @@ def main():
     print("Evaluating the RAG system...")
     results = evaluate_rag_system(rag, evaluation_dataset, docs_num=docs_num, model=ollama_model, client=ollama_client, rerank_num=rerank_num)
 
-    # calculate average BERTScore F1
+    # Calculate average BERTScore F1
     f1_scores = [result['bert_score_F1'] for result in results if result['bert_score_F1'] is not None]
     average_f1 = sum(f1_scores) / len(f1_scores) if f1_scores else 0
 
-    # print results
+    # Print results
     for result in results:
         print(f"Query: {result['query']}")
         print(f"Ground Truth: {result['ground_truth']}")
