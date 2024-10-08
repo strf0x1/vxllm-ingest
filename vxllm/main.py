@@ -14,8 +14,8 @@ def main():
     parser = argparse.ArgumentParser(description="Process and index documents.")
     parser.add_argument("--data", help="Directory path containing documents to process", default="data/")
     parser.add_argument("--metadata-enabled", action="store_true", help="Generate or regenerate metadata for documents")
-    parser.add_argument("--chunk-size", type=int, default=1000, help="Size of document chunks")
-    parser.add_argument("--chunk-overlap", type=int, default=200, help="Overlap between document chunks")
+    parser.add_argument("--chunk-size", type=int, default=250, help="Size of document chunks")
+    parser.add_argument("--chunk-overlap", type=int, default=0, help="Overlap between document chunks")
     args = parser.parse_args()
 
     directory = args.data
