@@ -50,7 +50,7 @@ def split_text_document(document, chunk_size=256, chunk_overlap=0):
 # Split code with tree-sitter syntax trees
 # from: https://docs.sweep.dev/blogs/chunking-2m-files
 # average chunk size of function < 500 tokens
-def split_code_document(document, chunk_size=1000, chunk_overlap=0):
+def split_code_document(document, chunk_size=500, chunk_overlap=0):
     _, ext = os.path.splitext(document.metadata['source'])
     ext = ext.lower()
 

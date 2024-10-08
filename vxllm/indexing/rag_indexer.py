@@ -10,14 +10,22 @@ class RAGIndexer:
         metadatas = [doc.metadata for doc in documents]
 
         try:
+            # Set the maximum sequence length
+            max_length = 512  # this is the default for many transformer models
+
+            # truncate or pad the texts to the maximum length
+            truncated_texts = [text[:max_length] for text in texts]
+
             self.rag.index(
-                collection=texts,
+                collection=truncated_texts,
                 document_metadatas=metadatas,
                 index_name="document_collection",
-                max_document_length=2000,  # this should be rare cases where med to large functions are returned
-                split_documents=False    # now handled by text_splitter
+                max_document_length=max_length,
+                split_documents=False
             )
         except AssertionError as e:
             print(f"AssertionError during FAISS KMeans training: {e}")
         except Exception as e:
             print(f"Unexpected error during indexing: {e}")
+            raise  # Re-raise the exception for debugging purposes
+

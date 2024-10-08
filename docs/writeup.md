@@ -107,11 +107,11 @@ functions. This is implemented in langchain's **RecursiveCharacterTextSplitter**
 The effect is that our code is now split into more logical chunks preserving context. In the sweep.dev blog 
 post, they also did an analysis of average function length in tokens and found the ideal size for med-large 
 functions is around 1500, but for the average function, it's closer to <500. For this reason, I chose a max 
-chunk of 1000, but in reality the chunks should be much smaller. 
+chunk of 500, but in reality the chunks should be much smaller. 
   
 Traditionally, RAG's have a fixed chunk size, and on average keep the chunks somewhere between 100 - 500. This
 is to reduce the performance impact of user queries. In this implementation, we don't have to worry about a few 
-1000 token chunks when the average for things like markdown files are still around 256.
+500 token chunks when the average for things like markdown files are still around 256.
   
 There are several other improvements that could be made, but I haven't been researched thoroughly enough yet:
   * Data quality is really important, and I haven't cleaned the docs much yet. There are also several commercial pdf
