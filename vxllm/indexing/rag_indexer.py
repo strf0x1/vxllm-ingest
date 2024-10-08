@@ -11,7 +11,7 @@ class RAGIndexer:
 
         try:
             # Set the maximum sequence length
-            max_length = 512  # this is the default for many transformer models
+            max_length = 512  # max chunk 1000 broke colbert embedding model, so cap at 512 no matter other settings
 
             # truncate or pad the texts to the maximum length
             truncated_texts = [text[:max_length] for text in texts]
