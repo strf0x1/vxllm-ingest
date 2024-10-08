@@ -70,7 +70,6 @@ def process_documents(directory, should_generate_metadata=False, model="gemma2:2
                 file_path = os.path.join(root, file)
                 try:
                     doc = load_document(file_path)
-                    print(f"Doc {file_path} has a type of {type(doc)}")
                     doc_hash = compute_document_hash(doc.page_content)
 
                     if doc_hash not in document_hashes:
