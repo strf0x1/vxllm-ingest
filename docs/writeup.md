@@ -14,7 +14,7 @@ important.
 Ideally, in RAG, you want to retrieve and use as much relevant information as possible. However, practical constraints 
 arise due to the model's fixed context length and performance considerations. If you embed an entire document that is 
 10,000 tokens, and later retrieve it to a model that has a maximum context length of 2,000 tokens, the data will be
-truncated, which could lead to the loss of important information. To mitigate this, tools like Ragatouille provide 
+truncated by 8,000 tokens, which could lead to the loss of important information. To mitigate this, tools like Ragatouille provide 
 parameters such as max_document_length and split_documents to optimize the retrieval, ensuring that the most relevant 
 parts of the document are accessible without exceeding limits.
 

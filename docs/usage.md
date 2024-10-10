@@ -1,5 +1,5 @@
 ## Usage
-There are 2 main scripts:
+There are 3 main scripts:
   * **main.py** - this is what ingests your data into the database and generates supplemental metadata. all files are written to the **.ragatouille/** folder.
   * **cli.py** - a text ui to interact with the RAG.
   * **evaluate.py** - BERTScore evaluation
@@ -25,6 +25,8 @@ After a fresh ingest, the first query you make will be slower because Ragatouill
 for subsequent queries:
   
 ## Models
+The default model used is gemma2:2b.
+  
 There are some really great local models available now. I used the default q4 models from Ollama. My favorites have been:
   * mistral-nemo - 12b model. It writes excellent code, so its responses are subjectively better than a lot of the other reasonably-sized models.
   * qwen2.5 - New model on the block that performs really well and a little bit faster than nemo. On evals, it actually tends to perform a little better than nemo.
