@@ -17,15 +17,26 @@ ollama pull gemma2:2b
 For the best performance, you will need an NVIDIA card with CUDA support and docker with gpu passthrough enabled.
 Specifically, you will need the NVIDIA drivers and CUDA toolkit (tested with 11.x and 12.1). For Ubuntu refer 
 [here](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/).
-  
-I personally use PopOS 22.04 LTS due to their awesome NVIDIA support out-of-the-box. It has the advantages of Ubuntu
-without the bloat. The CUDA setup docs are [here](https://support.system76.com/articles/cuda/).
+
+# Ubuntu 24.04 
 ```bash
-# in PopOS
 sudo apt install nvidia-cuda-toolkit
+# check cuda is loaded correctly
+nvcc --version
 ```
   
-Once your drivers are installed, run:
+Once your drivers are installed, install [docker](https://docs.docker.com/engine/install/ubuntu/). Install the [nvidia container dependencies](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-with-apt):
+```bash
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+```
+Then enable ctk:
 ```bash
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
